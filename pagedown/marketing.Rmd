@@ -1,0 +1,254 @@
+---
+title: "Audit Data Analytics"
+author: "Focus on risks efficiently and effectively"
+date: "`r Sys.Date()`"
+output:
+  pagedown::html_paged:
+    self_contained: true
+    number_sections: false
+    css:
+      - custom-fonts.css
+      - custom.css
+      - custom-page.css
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE, results = "asis")
+library(tidyverse)
+library(lubridate)
+library(knitr)
+library(kableExtra)
+library(randomForest)
+```
+
+
+<head>
+<script src="https://kit.fontawesome.com/cd61e814d0.js" crossorigin="anonymous"></script>
+</head>
+
+
+<div class="container">
+
+<div class="paside">
+
+<img src="../asset/stpic2.jpg" alt="stpic" height="80px" width="90px">
+
+<div class="paside_word">
+
+Stewart Li, a qualified accountant, has extensive experience assisting organisations with strengthening internal controls processes, initial public offerings and IFRS reporting standards. He has worked closely with a wide variety of clients in the manufacturing, service and public sectors across the region. He is passionate about utilizing Data Analytics to help clients manage the financial reporting challenges associated with a constantly changing business environment. 
+
+</div>
+
+<i class="fas fa-user-secret"></i> Stewart Li ~MCom|CA|ACCA~ \
+<i class="far fa-envelope"></i> stewardli8@msn.com \
+<i class="fas fa-globe-americas"></i> https://raudit.netlify.com/ \
+<i class="fas fa-map-marked-alt"></i> Clementi, Singapore \
+
+</div>
+
+<div class="pintro">
+
+Accounting professionals tend to work under pressure so that they can cover as much ground as possible. However, tools at their disposal often have very limited power and are unable to optimistically fit their workflow. Furthermore, their work is prone to errors due to too many copy+paste and unreproduciblity.
+
+In our view, **R** is a perfect tool to increases their productivity and conform to their workflow. Data analytics lifecycle described by [R4DS](https://r4ds.had.co.nz/) sensibly matchs audit routines. This document is meant to demonstrate the usefulness of R in the field of audit via a specific use case. 
+
+<img src="../asset/tidypic.png">
+
+**RAudit Solution LLP** leverages accounting expertise and the power of R to provide excellent consulting services to organisations across a diverse range of sectors. We help organisations like yours become more efficient and effective with auditing and forensic accounting. Contact us today for more about how consulting can help your organisation adapt to a rapidly changing market.
+
+Our consulting will help you with: 
+
+> Financial Planning & Analysis;    
+> Internal Audit;       
+> External Audit;   
+> Practices of SOX and FCPA;    
+> In-house Training;   
+
+</div>
+
+</div>
+
+
+# Case study
+
+This is an example of analyzing General Ledger with R. See [Github Repo](https://github.com/stewartli/auditworkpaper) for project details. 
+
+
+**Data cleaning**
+
+<hr>
+
+
+```{r out.width="80%", out.height="20%", fig.show='hold', fig.align='center'}
+knitr::include_graphics(c("../asset/tidywork.PNG"))
+``` 
+
+
+**Data munging**
+
+<hr>
+
+
+```{r}
+tb <- read_csv("../data/gl.csv") %>% 
+  rename(id = X1) %>% 
+  select(-adj) %>% 
+  filter(!is.na(type)) %>% 
+  mutate(weekday = wday(date, label = TRUE),
+         month = month(date, label = TRUE))
+
+ar <- c("Accounts Receivable", "Revenue")
+df_ar <- tb %>% 
+  filter(subaccount %in% ar)
+
+df_pl <-tb %>% 
+  filter(subaccount %in% c("Revenue", "Wages - Sales-Inside", "Wages - Warehouse", "Freight Costs", 
+                           "Packaging Materials", "Purchases  (Cost of Goods)", "Sales Commission (outside reps)", 
+                           "Advertising Expense", "Business License & Fees", "Car Lease", 
+                           "Gas", "Insurance-Auto", "Mileage", "Registration & License", 
+                           "Repairs & Maintenance", "Conferences and Seminars", "Contributions", 
+                           "Depreciation Expense", "Dues and Subscriptions", "General Liability Insurance", 
+                           "Owner's Health Insurance", "Professional Liability Insuranc", 
+                           "Worker's Compensation", "Maintenance/Janitorial", "Marketing Expense", 
+                           "Meals and Entertainment", "Office Equipment", "Postage and Delivery", 
+                           "Accounting Fees", "Legal Fees", "Payroll Service Fees", "Promotional Expense", 
+                           "Rent", "Computer Repairs", "Supplies", "Telephone", "Travel", 
+                           "Utilities", "Employee Benefits", "Employee Bonus", "Payroll Tax Expenses", 
+                           "Sick/Holiday & Vacation Pay", "Wages - Office Staff", "Interest Expense"),
+         !subaccount %in% c("Mileage", "Employee Bonus", "Sick/Holiday & Vacation Pay")) %>% # no levels
+  group_by(date, subaccount) %>% 
+  summarise_at(vars(debit, credit), sum) %>% # daily summarized data***
+  mutate(amt = abs(credit - debit)) %>% 
+  select(date, subaccount, amt) %>% 
+  pivot_wider(names_from = subaccount, values_from = amt) %>% 
+  replace(is.na(.), 0) %>% 
+  select(date, Revenue, everything()) %>% 
+  ungroup() %>% 
+  janitor::clean_names()
+
+df_model <- df_pl %>% 
+  select(c("revenue", "purchases_cost_of_goods", "wages_sales_inside", 
+           "payroll_tax_expenses", "wages_office_staff", "wages_warehouse", 
+           "conferences_and_seminars", "supplies", "dues_and_subscriptions", 
+           "interest_expense", "maintenance_janitorial", "accounting_fees"))
+```
+
+
+```{r}
+df_ar %>% 
+  filter(subaccount == "Revenue") %>% 
+  group_by(name, month) %>% 
+  summarise(freq = n(),
+            credit = sum(credit)) %>% 
+  mutate(pct = credit / sum(credit),
+         cum_amt = cumsum(credit),
+         cum_pct = cumsum(pct)) %>% 
+  ungroup() %>% 
+  slice(1:18) %>% 
+  kable(format = "html", format.args = list(decimal.mark = '.', big.mark = ","), 
+        longtable = T, booktabs = TRUE) %>%
+  kable_styling(latex_options = c("striped", "hold_position", "repeat_header"), font_size = 9) %>% 
+  row_spec(0, bold = T) %>% 
+  row_spec(c(1,8), bold = T, color = "white", background = "#D7261E") %>% 
+  footnote(general = "This is a sales summary table by each customer and each month", 
+           footnote_as_chunk = T, title_format = c("italic"))
+```
+
+
+**Visualization**
+
+<hr>
+
+
+```{r  out.width="95%", out.height="20%", fig.show='hold', fig.align='center'}
+z <- df_ar %>% 
+  filter(subaccount == "Revenue") %>% 
+  mutate(z = ifelse(abs(scale(credit)) > 1.96, "z", "ok")) %>% 
+  filter(z == "z")
+  
+df_ar %>% 
+  filter(subaccount == "Revenue") %>% 
+  ggplot() +
+  geom_point(aes(credit, date, size = credit > 6000)) +
+  geom_point(data = z, aes(credit, date, color = "red")) +
+  geom_vline(xintercept = 3000, lty = 2, col = "red", size = 1) +
+  geom_text(data = subset(df_ar %>% filter(subaccount == "Revenue"), credit > 3000),
+            aes(credit, date, label = name), 
+            vjust = 1,
+            hjust = .1,
+            check_overlap = TRUE, 
+            col = "steelblue",
+            size = 3) +
+  scale_colour_manual(values = c("red"), guide = FALSE) +
+  scale_size_manual(values = c(1, 3), guide = FALSE) +
+  scale_x_continuous(labels = scales::comma_format()) +
+  # scale_y_date(date_breaks = "1 week", date_labels = "%W") +
+  annotate("text", x = 3400, y = as.Date("2019-01-06"), label = "3,000", size = 3) +
+  theme(legend.position = "none") +
+  theme_minimal() + 
+  labs(title = "Identification of sales outliers for FY2018",
+       subtitle = "Based on ML and Z score",
+       caption = "RAudit Solution LLP | Stewart Li",
+       x = "",
+       y = "") 
+```
+
+
+**Modeling**
+
+<hr>
+
+
+```{r  out.width="95%", out.height="20%", fig.show='hold', fig.align='center'}
+set.seed(1234)
+model_rf <- randomForest(revenue ~ ., 
+                        data = df_model, 
+                        ntree = 50, 
+                        mtry = 2, # split of vars
+                        keep.forest = TRUE, 
+                        importance = TRUE)
+
+importance(model_rf) %>% 
+  as.data.frame() %>% 
+  rownames_to_column() %>% 
+  select(variables = rowname, mse = `%IncMSE`) %>% 
+  mutate(variables = fct_reorder(str_to_sentence(variables), mse)) %>% 
+  ggplot(aes(variables, mse, fill = mse)) +
+  geom_bar(stat = 'identity') +
+  coord_flip() +
+  theme_light() +
+  theme(legend.position="none") + 
+  labs(title = "Important variables inside of randomForest",
+       x = '', 
+       y= '% increase MSE if variable is randomly permuted') 
+```
+
+
+<br>
+
+<div class="end">
+
+&copy;RAudit Solution LLP All rights reserved. \
+China | Singapore | New Zealand <br>
+
+Disclaimer: The document proudly produced by R is designed to be a general representation of the projects and is not in any way designed to represent views from any particular aspects. Views may be obstructed as some procedures otherwise are required by regulations under a certain circumstance. Contact RAudit Solution LLP for consulting services at your specific direction.
+
+<img src="caw.png" alt="caw" height="80px" width="90px">
+
+</div>
+
+
+```{r}
+knitr::knit_exit()
+```
+
+
+![](../asset/excel_before.PNG){width=50% height=20%} ![](../asset/tidywork.PNG){width=50% height=20%}
+
+
+```{r out.width="49%", out.height="20%", fig.show='hold', fig.align='default'}
+knitr::include_graphics(c("../asset/excel_before.PNG","../asset/tidywork.PNG"))
+``` 
+
+
