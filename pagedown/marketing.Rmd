@@ -24,7 +24,7 @@ library(randomForest)
 
 
 <head>
-<script src="https://kit.fontawesome.com/cd61e814d0.js" crossorigin="anonymous"></script>
+<script src="https://kit.fontawesome.com/cf31c414d0.js" crossorigin="anonymous"></script>
 </head>
 
 
