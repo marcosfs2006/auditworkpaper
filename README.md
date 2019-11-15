@@ -30,5 +30,5 @@ The case study assumes that auditors are at the stage of audit planning and will
 
 Unless there are unknown bank accounts, all company transactions will be recorded in G/L. G/L contains valuable information for auditors to perform risk assessment and preliminary analytical procedures efficiently and effectively. Unfortunately, auditors often have difficulties in cleaning and extracting information in G/L. This is particularly true in the case of JV memo or description. Using R to solve those issues would be like a breeze. 
 
-![*Audit procedures*](./asset/tidywork.png){width=80% height=20%}
+![*Audit procedures*](./asset/tidywork.png)
 
