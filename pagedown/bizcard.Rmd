@@ -1,0 +1,78 @@
+---
+url: https://raudit.netlify.com/
+phone: "+65 93427357"
+email: "+65 93427357 <br> stewardli8@msn.com"
+address: |
+  BLK461 Clement Ave3,  
+  #12-608,   
+  Singapore 120461
+logo: "logo_original.png"
+person: 
+  - name: Stewart Li
+    title: MCom | ACCA | CA 
+    phone: <i class="fas fa-hand-holding-usd"></i> Accounting <br><br> <i class="fas fa-highlighter"></i> Audit <br><br> <i class="far fa-chart-bar"></i> Data Analytics <br><br> <i class="fas fa-graduation-cap"></i> Forensic Accounting
+googlefonts: "Merriweather" 
+# cardwidth: 3.5in
+# cardheight: 2in
+paperwidth: 8.5in
+paperheight: 11in
+output: pagedown::business_card
+---
+
+
+```{css, eval=TRUE}
+.wrapper {
+  color: white;
+  background-color: #CD6B2A;
+  border: 1px dotted black;
+}
+.coordinates {
+  color: white;
+}
+.logo {
+  display: inline;
+  height: 26%;
+  float: right;
+  padding: 0;
+  margin-top: .1in;
+}
+.name{
+  font-size: 18px;
+  margin-top: .2in;
+}
+.title{
+  font-size: 8px;
+}
+.phone{
+  margin-top: .2in;
+  margin-bottom: .2in;
+  font-size: 12px;
+}
+.contact-email {
+  font-size: 10px;
+}
+.website {
+  font-size: 10px;
+}
+.address{
+  font-size: 10px;
+}
+```
+
+
+<script src="https://kit.fontawesome.com/cf61d713d0.js" crossorigin="anonymous"></script>
+
+
+
+```{r}
+knitr::knit_exit()
+```
+
+
+#F7907A, teal, 
+
+
+
+
+
+
